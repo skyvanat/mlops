@@ -1,0 +1,19 @@
+train:
+  random_state: 42
+  test_size: 0.2
+  
+model:
+  n_estimators: 100
+  max_depth: 5
+  random_state: 42
+  class_weight: balanced
+  
+data:
+  target: Medal
+  
+paths:
+  raw_data: data/raw/olympics_raw.csv
+  cleaned_data: data/processed/olympics_cleaned.csv
+  featured_data: data/processed/olympics_featured.csv
+  model: models/random_forest_model.pkl
+  metrics: models/metrics.json
