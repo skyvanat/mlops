@@ -42,30 +42,31 @@ def check_class_balance(y):
         print(f"\nImbalance ratio: {imbalance_ratio:.2f}x")
         
         if imbalance_ratio > 2:
-            print("⚠️  Significant class imbalance detected!")
-            print("✓ Using class_weight='balanced' to adjust")
+            print("SIGNIFICANT CLASS IMBALANCE DETECTED!")
+            print("Using class_weight='balanced' to adjust")
             return True
     return False
 
 def prepare_features(df):
     """
     Prepare features and target for training
-    Remove non-predictive columns
+    Remove non-predictive columns and avoid data leakage
     """
     print("\n=== Feature Preparation ===")
+    print("WARNING: Using minimal features (avoiding data leakage)")
     
-    # Select relevant features for training
+    # Select relevant features for training - Only historical performance
+    # This avoids all data leakage from current medals
     feature_cols = [
-        'Year', 'Gold', 'Silver', 'Bronze', 'Is_Host', 
-        'Medal_Strength', 'Country_Code_Encoded', 'Host_Country_Encoded',
-        'Historical_Gold', 'Historical_Silver', 'Historical_Bronze',
-        'Historical_Total_Medals', 'Historical_Medal_Ratio',
-        'Year_Gold', 'Year_Silver', 'Year_Bronze', 'Year_Total'
+        'Year', 'Is_Host', 
+        'Historical_Total_Medals',  # Only total historical medals
+        'Country_Code_Encoded', 'Host_Country_Encoded'
     ]
     
     # Filter only existing columns
     available_cols = [col for col in feature_cols if col in df.columns]
     print(f"Using {len(available_cols)} features for training")
+    print(f"Features: {available_cols}")
     
     X = df[available_cols].copy()
     y = df['Medal_Encoded'].copy()
@@ -97,13 +98,15 @@ def train_model(X_train, y_train, config):
     model = RandomForestClassifier(
         n_estimators=config['model']['n_estimators'],
         max_depth=config['model']['max_depth'],
+        min_samples_split=config['model'].get('min_samples_split', 5),
+        min_samples_leaf=config['model'].get('min_samples_leaf', 2),
         random_state=config['model']['random_state'],
         class_weight='balanced',
         n_jobs=-1
     )
     
     model.fit(X_train, y_train)
-    print(f"✓ Model trained successfully")
+    print(f"\nModel trained successfully")
     
     return model, class_weight_dict
 
@@ -158,14 +161,14 @@ def save_model(model, path):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, 'wb') as f:
         pickle.dump(model, f)
-    print(f"\n✓ Model saved to {path}")
+    print(f"Model saved to {path}")
 
 def save_metrics(metrics, path):
     """Save metrics to JSON"""
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, 'w') as f:
         json.dump(metrics, f, indent=4)
-    print(f"✓ Metrics saved to {path}")
+    print(f"Metrics saved to {path}")
 
 if __name__ == "__main__":
     # Load configuration
@@ -176,7 +179,7 @@ if __name__ == "__main__":
     
     with mlflow.start_run():
         print("=" * 50)
-        print("🏅 OLYMPIC MEDALS PREDICTION - TRAINING PIPELINE")
+        print("OLYMPIC MEDALS PREDICTION - TRAINING PIPELINE")
         print("=" * 50)
         
         # Load data
@@ -200,7 +203,10 @@ if __name__ == "__main__":
         mlflow.log_params({
             'n_estimators': config['model']['n_estimators'],
             'max_depth': config['model']['max_depth'],
+            'min_samples_split': config['model'].get('min_samples_split', 5),
+            'min_samples_leaf': config['model'].get('min_samples_leaf', 2),
             'test_size': config['train']['test_size'],
+            'random_state': config['model']['random_state'],
             'class_weight': 'balanced'
         })
         
@@ -224,5 +230,5 @@ if __name__ == "__main__":
         mlflow.sklearn.log_model(model, "model")
         
         print("\n" + "=" * 50)
-        print("✓ TRAINING COMPLETED SUCCESSFULLY!")
+        print("TRAINING COMPLETED SUCCESSFULLY!")
         print("=" * 50)

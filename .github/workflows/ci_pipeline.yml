@@ -37,14 +37,14 @@ jobs:
 
     - name: Upload Metrics
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: metrics
         path: models/metrics.json
 
     - name: Upload Model
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: model
         path: models/random_forest_model.pkl
