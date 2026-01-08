@@ -1,0 +1,17 @@
+.gitignore
+*.pyc
+__pycache__/
+.vscode/
+.DS_Store
+*.egg-info/
+dist/
+build/
+*.pkl
+*.json
+mlruns/
+.dvc/cache/
+data/processed/*
+models/*
+!.gitkeep
+.env
+*.log
