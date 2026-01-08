@@ -226,9 +226,12 @@ if __name__ == "__main__":
         save_model(model, model_path)
         save_metrics(metrics, metrics_path)
         
-        # Log artifacts to MLflow
-        mlflow.log_artifact(model_path)
-        mlflow.log_artifact(metrics_path)
+        # Log artifacts to MLflow (skip if permission denied in CI/CD)
+        try:
+            mlflow.log_artifact(model_path)
+            mlflow.log_artifact(metrics_path)
+        except PermissionError:
+            print("WARNING: Could not log artifacts to MLflow (permission denied)")
         
         print("\n" + "=" * 50)
         print("TRAINING COMPLETED SUCCESSFULLY!")
